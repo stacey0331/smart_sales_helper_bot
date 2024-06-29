@@ -105,10 +105,11 @@ class EventManager(object):
         # get event_type
         event_type = dict_data.get("header").get("event_type")
         # build event
-        print(EventManager.event_type_map)
-        print(event_type)
-        print('\n\n\n')
-        event = EventManager.event_type_map.get(event_type)(dict_data, token, encrypt_key)
+        event_builder = EventManager.event_type_map.get(event_type)
+        if event_builder:
+            event = event_builder(dict_data, token, encrypt_key)
+        else:
+            raise ValueError(f"No event builder found for event_type: {event_type}")
         # get handler
         return EventManager.event_callback_map.get(event_type), event
 

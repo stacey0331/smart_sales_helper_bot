@@ -3,3 +3,11 @@ python-dotenv
 requests
 pycryptodome
 Werkzeug<3
+sounddevice
+numpy
+
+google-api-core
+google-auth
+proto-plus
+protobuf
+google-cloud-speech

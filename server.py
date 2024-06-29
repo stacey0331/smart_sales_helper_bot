@@ -4,9 +4,12 @@ import os
 import logging
 import requests
 from api import MessageApiClient
-from event import MessageReceiveEvent, UrlVerificationEvent, EventManager
+from event import MessageReceiveEvent, MeetingStartedEvent, UrlVerificationEvent, EventManager 
 from flask import Flask, jsonify
 from dotenv import load_dotenv, find_dotenv
+
+from speechtext import *
+from google.cloud import speech_v1p1beta1 as speech
 
 # load env parameters form file named .env
 load_dotenv(find_dotenv())
@@ -24,6 +27,31 @@ LARK_HOST = os.getenv("LARK_HOST")
 message_api_client = MessageApiClient(APP_ID, APP_SECRET, LARK_HOST)
 event_manager = EventManager()
 
+# Event handler for meeting start event
+@event_manager.register("vc.meeting.all_meeting_started_v1")
+def meeting_started_event_handler(req_data: MeetingStartedEvent):
+    language_code = "en-US"
+    client = speech.SpeechClient()
+    config = speech.RecognitionConfig(
+        encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
+        sample_rate_hertz=RATE,
+        language_code=language_code,
+    )
+
+    streaming_config = speech.StreamingRecognitionConfig(
+        config=config, interim_results=True
+    )
+
+    with MicrophoneStream() as stream:
+        audio_generator = stream.generator()
+        requests = (
+            speech.StreamingRecognizeRequest(audio_content=content)
+            for content in audio_generator
+        )
+
+        responses = client.streaming_recognize(streaming_config, requests)
+        listen_print_loop(responses)
+    return jsonify()
 
 @event_manager.register("url_verification")
 def request_url_verify_handler(req_data: UrlVerificationEvent):

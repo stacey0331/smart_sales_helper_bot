@@ -1,9 +1,5 @@
 import queue
-import sys
-import re
 import sounddevice as sd
-import numpy as np
-from google.cloud import speech_v1p1beta1 as speech
 
 RATE = 16000
 CHUNK = int(RATE / 10)  # 100ms
@@ -47,32 +43,13 @@ class MicrophoneStream:
 
 """Iterates through server responses and prints transcriptions."""
 def listen_print_loop(responses):
-    num_chars_printed = 0
     for response in responses:
         if not response.results:
             continue
 
-        result = response.results[0]
-        if not result.alternatives:
-            continue
-
-        transcript = result.alternatives[0].transcript
-
-        overwrite_chars = " " * (num_chars_printed - len(transcript))
-
-        if not result.is_final:
-            sys.stdout.write(transcript + overwrite_chars + "\r")
-            sys.stdout.flush()
-
-            num_chars_printed = len(transcript)
-
-        else:
-            print(transcript + overwrite_chars)
-
-            if re.search(r"\b(exit|quit)\b", transcript, re.I):
-                print("Exiting..")
-                break
-
-            num_chars_printed = 0
+        for result in response.results:
+            if result.is_final:
+                transcript = result.alternatives[0].transcript
+                print(f"Transcript: {transcript}")
 
     return transcript

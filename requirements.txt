@@ -19,4 +19,4 @@ nltk
 scikit-learn
 matplotlib
 seaborn
-re
+joblib

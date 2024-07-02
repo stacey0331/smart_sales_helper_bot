@@ -1,12 +1,12 @@
 import pandas as pd
-import re
-from nltk.tokenize import TweetTokenizer
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 import matplotlib.pyplot as plt
 import seaborn as sns
+import joblib
+from utils import preprocess_text, sentences_to_embeddings
 
 def load_glove_model(glove_file):
     model = {}
@@ -18,15 +18,8 @@ def load_glove_model(glove_file):
             model[word] = embedding
     return model
 
-glove_file = './script/glove.6B.300d.txt'  # Path to GloVe file
+glove_file = './script/glove.6B.300d.txt'
 glove_model = load_glove_model(glove_file)
-
-tokenizer = TweetTokenizer(preserve_case=False, reduce_len=True, strip_handles=True)
-
-def preprocess_text(text):
-    text = re.sub(r'[^\w\s\']|[\d]', '', text)  # Remove special characters, punctuation, and digits
-    tokens = tokenizer.tokenize(text)  # Tokenize text into words
-    return tokens
 
 splits = {'train': 'train.csv', 'test': 'test.csv'}
 train_path = "hf://datasets/osyvokon/pavlick-formality-scores/" + splits["train"]
@@ -49,25 +42,7 @@ for sentence, score in zip(sentences, formality_scores):
         preprocessed_sentences.append(preprocessed_sentence)
         preprocessed_formality_scores.append(1 if score <= 0 else 0)
 
-# Convert formality scores to numpy array
 preprocessed_formality_scores = np.array(preprocessed_formality_scores)
-
-# Function to convert sentences to GloVe embeddings
-def sentences_to_embeddings(sentences, model, vector_size):
-    embeddings = []
-    for sentence in sentences:
-        vector = np.zeros(vector_size)
-        count = 0
-        for word in sentence:
-            if word in model:
-                vector += model[word]
-                count += 1
-        if count != 0: # sentence/vector not all 0
-            vector /= count
-        # else:
-        #     print(f"Words not found in GloVe model: {sentence}")
-        embeddings.append(vector)
-    return np.array(embeddings)
 
 # Convert preprocessed sentences to GloVe embeddings
 sentence_embeddings = sentences_to_embeddings(preprocessed_sentences, glove_model, vector_size=300)  # Assuming vector_size matches GloVe dimensions
@@ -89,6 +64,9 @@ log_reg = LogisticRegression()
 log_reg.fit(X_train, Y_train)
 y_pred_proba = log_reg.predict_proba(X_test)[:, 1]
 y_pred = log_reg.predict(X_test) 
+
+joblib.dump(log_reg, './model/logistic_reg_model.pkl')
+joblib.dump(glove_model, './model/glove_model.pkl')
 
 # Evaluate model performance
 accuracy = accuracy_score(Y_test, y_pred)

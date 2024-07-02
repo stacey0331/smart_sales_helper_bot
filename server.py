@@ -39,7 +39,7 @@ def meeting_started_event_handler(req_data: MeetingStartedEvent):
     )
 
     streaming_config = speech.StreamingRecognitionConfig(
-        config=config, interim_results=True
+        config=config, interim_results=False
     )
 
     with MicrophoneStream() as stream:

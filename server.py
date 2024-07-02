@@ -8,7 +8,7 @@ from event import MessageReceiveEvent, MeetingStartedEvent, UrlVerificationEvent
 from flask import Flask, jsonify
 from dotenv import load_dotenv, find_dotenv
 
-from speechtext import *
+from script.speech_to_text import *
 from google.cloud import speech_v1p1beta1 as speech
 
 # load env parameters form file named .env

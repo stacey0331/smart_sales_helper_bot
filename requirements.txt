@@ -3,11 +3,20 @@ python-dotenv
 requests
 pycryptodome
 Werkzeug<3
+
+# speech to text
 sounddevice
 numpy
-
 google-api-core
 google-auth
 proto-plus
 protobuf
 google-cloud-speech
+
+# ml
+pandas
+nltk
+scikit-learn
+matplotlib
+seaborn
+re

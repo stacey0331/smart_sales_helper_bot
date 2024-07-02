@@ -10,6 +10,7 @@ from dotenv import load_dotenv, find_dotenv
 
 from script.speech_to_text import *
 from google.cloud import speech_v1p1beta1 as speech
+import joblib
 
 # load env parameters form file named .env
 load_dotenv(find_dotenv())
@@ -42,6 +43,9 @@ def meeting_started_event_handler(req_data: MeetingStartedEvent):
         config=config, interim_results=False
     )
 
+    log_reg = joblib.load('./model/logistic_reg_model.pkl')
+    glove_model = joblib.load('./model/glove_model.pkl')
+
     with MicrophoneStream() as stream:
         audio_generator = stream.generator()
         requests = (
@@ -50,7 +54,7 @@ def meeting_started_event_handler(req_data: MeetingStartedEvent):
         )
 
         responses = client.streaming_recognize(streaming_config, requests)
-        listen_print_loop(responses)
+        listen_print_loop(responses, log_reg, glove_model)
     return jsonify()
 
 @event_manager.register("url_verification")

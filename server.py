@@ -4,9 +4,10 @@ import os
 import logging
 import requests
 from api import MessageApiClient
-from event import MessageReceiveEvent, MeetingStartedEvent, UrlVerificationEvent, EventManager 
+from event import MessageReceiveEvent, MeetingStartedEvent, MeetingEndedEvent, UrlVerificationEvent, EventManager 
 from flask import Flask, jsonify
 from dotenv import load_dotenv, find_dotenv
+import json
 
 from script.speech_to_text import *
 from google.cloud import speech_v1p1beta1 as speech
@@ -28,9 +29,16 @@ LARK_HOST = os.getenv("LARK_HOST")
 message_api_client = MessageApiClient(APP_ID, APP_SECRET, LARK_HOST)
 event_manager = EventManager()
 
+# enrolled users
+enrolled = set()
+
 # Event handler for meeting start event
 @event_manager.register("vc.meeting.all_meeting_started_v1")
 def meeting_started_event_handler(req_data: MeetingStartedEvent):
+    open_id = req_data.event.operator.id.open_id
+    if open_id not in enrolled:
+        return jsonify()
+    
     language_code = "en-US"
     client = speech.SpeechClient()
     config = speech.RecognitionConfig(
@@ -57,6 +65,10 @@ def meeting_started_event_handler(req_data: MeetingStartedEvent):
         listen_print_loop(responses, log_reg, glove_model)
     return jsonify()
 
+@event_manager.register("vc.meeting.all_meeting_ended_v1")
+def meeting_ended_event_handler(req_data: MeetingEndedEvent):
+    return jsonify() 
+
 @event_manager.register("url_verification")
 def request_url_verify_handler(req_data: UrlVerificationEvent):
     # url verification, just need return challenge
@@ -72,11 +84,17 @@ def message_receive_event_handler(req_data: MessageReceiveEvent):
     if message.message_type != "text":
         logging.warn("Other types of messages have not been processed yet")
         return jsonify()
-        # get open_id and text_content
     open_id = sender_id.open_id
     text_content = message.content
-    # echo text message
-    message_api_client.send_text_with_open_id(open_id, text_content)
+    if json.loads(text_content)['text'].lower() == 'enroll':
+        enrolled.add(open_id)
+        text_content = "{\"text\": \"You've successfully enrolled. You will receive reminders for your meetings with Lark!\"}"
+        message_api_client.send_text_with_open_id(open_id, text_content)
+
+    if json.loads(text_content)['text'].lower() == 'stop':
+        enrolled.discard(open_id)
+        text_content = "{\"text\": \"You will not receive future message again. To use it again, type \"ENROLL\".\"}"
+        message_api_client.send_text_with_open_id(open_id, text_content)
     return jsonify()
 
 

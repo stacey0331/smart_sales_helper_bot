@@ -56,6 +56,14 @@ class MeetingStartedEvent(Event):
         return "vc.meeting.all_meeting_started_v1"
 
 
+class MeetingEndedEvent(Event):
+    # meeting ended event defined https://open.larksuite.com/document/server-docs/vc-v1/meeting/events/all_meeting_ended
+
+    @staticmethod
+    def event_type():
+        return "vc.meeting.all_meeting_ended_v1"
+
+
 class UrlVerificationEvent(Event):
 
     # special event: url verification event
@@ -70,7 +78,7 @@ class UrlVerificationEvent(Event):
 class EventManager(object):
     event_callback_map = dict()
     event_type_map = dict()
-    _event_list = [MessageReceiveEvent, MeetingStartedEvent, UrlVerificationEvent]
+    _event_list = [MessageReceiveEvent, MeetingStartedEvent, MeetingEndedEvent, UrlVerificationEvent]
 
     def __init__(self):
         for event in EventManager._event_list:

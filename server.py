@@ -89,15 +89,26 @@ def message_receive_event_handler(req_data: MessageReceiveEvent):
     if json.loads(text_content)['text'].lower() == 'enroll':
         enrolled.add(open_id)
         text_content = {
-            "text": "You've successfully enrolled. You will receive reminders for your meetings with Lark!"
+            "text": "Welcome! \nYou've successfully enrolled. You will receive reminders for your meetings with Lark! \n To reverse this action, type \"STOP\"."
         }
         message_api_client.send_text_with_open_id(open_id, json.dumps(text_content))
     elif json.loads(text_content)['text'].lower() == 'stop':
         enrolled.discard(open_id)
         text_content = {
-            "text": "You will not receive future messages again. To use it again, type \"ENROLL\"."
+            "text": "You will not receive future messages again. To use this bot again, type \"ENROLL\"."
         }
         message_api_client.send_text_with_open_id(open_id, json.dumps(text_content))
+    elif open_id in enrolled:
+        text_content = {
+            "text": "You're already enrolled in receiving reminders. To unenroll, type \"STOP\".\n I'm currently unable to understand what you just said. "
+        }
+        message_api_client.send_text_with_open_id(open_id, json.dumps(text_content))
+    else: 
+        text_content = {
+            "text": "You're currently not enrolled to receive reminders. Type \"ENROLL\" to enroll. \nI'm currently unable to understand what you just said. "
+        }
+        message_api_client.send_text_with_open_id(open_id, json.dumps(text_content))
+
     return jsonify()
 
 

@@ -60,7 +60,7 @@ def listen_print_loop(responses, open_id, log_reg, glove_model, message_api_clie
                     "text": "To-be-avoided phrases detected: " + transcript
                 }
                 message_api_client.send_text_with_open_id(open_id, json.dumps(text_content))
-
+                continue
             if result.is_final:
                 # print(f"Transcript: {transcript}")
                 

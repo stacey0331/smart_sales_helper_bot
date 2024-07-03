@@ -6,6 +6,8 @@ from script.utils import preprocess_text, sentences_to_embeddings
 RATE = 16000
 CHUNK = int(RATE / 10)  # 100ms
 
+avoid_phrase = {"guarantee", "trust me", "just checking in", "to be honest", "what if i said", "mhm", "hm"}
+
 """Opens a recording stream as a generator yielding the audio chunks."""
 class MicrophoneStream:
     def __init__(self, rate=RATE, chunk=CHUNK):
@@ -50,21 +52,27 @@ def listen_print_loop(responses, open_id, log_reg, glove_model, message_api_clie
             continue
 
         for result in response.results:
+            transcript = result.alternatives[0].transcript
+            if len(transcript) == 0:
+                continue
+            if transcript.lower() in avoid_phrase:
+                text_content = {
+                    "text": "To-be-avoided phrases detected: " + transcript
+                }
+                message_api_client.send_text_with_open_id(open_id, json.dumps(text_content))
+
             if result.is_final:
-                transcript = result.alternatives[0].transcript
-                if len(transcript) == 0:
-                    continue
                 # print(f"Transcript: {transcript}")
                 
                 preprocessed_sentence = preprocess_text(transcript)
                 sentence_embedding = sentences_to_embeddings([preprocessed_sentence], glove_model, vector_size=300)
                 
                 prediction = log_reg.predict(sentence_embedding)[0]
-                probability = float(log_reg.predict_proba(sentence_embedding)[0][1])
-                
-                text_content = {
-                    "text": "Informal sentence detected: " + transcript + "\n(probability: " + str("{:.2f}".format(probability)) + ")."
-                }
-                message_api_client.send_text_with_open_id(open_id, json.dumps(text_content))
+                if prediction == 1: 
+                    probability = float(log_reg.predict_proba(sentence_embedding)[0][1])
+                    text_content = {
+                        "text": "Informal sentence detected: " + transcript + "\n(probability: " + str("{:.2f}".format(probability)) + ")."
+                    }
+                    message_api_client.send_text_with_open_id(open_id, json.dumps(text_content))
                 # print(f"Predicted Result: {prediction}") # 1 means informal
                 # print(f"Informal Probability: {probability}")

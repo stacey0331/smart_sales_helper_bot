@@ -48,7 +48,7 @@ def meeting_started_event_handler(req_data: MeetingStartedEvent):
     )
 
     streaming_config = speech.StreamingRecognitionConfig(
-        config=config, interim_results=False
+        config=config, interim_results=True
     )
 
     log_reg = joblib.load('./model/logistic_reg_model.pkl')

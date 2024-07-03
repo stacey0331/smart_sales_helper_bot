@@ -62,7 +62,7 @@ def meeting_started_event_handler(req_data: MeetingStartedEvent):
         )
 
         responses = client.streaming_recognize(streaming_config, requests)
-        listen_print_loop(responses, log_reg, glove_model)
+        listen_print_loop(responses, open_id, log_reg, glove_model, message_api_client)
     return jsonify()
 
 @event_manager.register("vc.meeting.all_meeting_ended_v1")
@@ -88,13 +88,16 @@ def message_receive_event_handler(req_data: MessageReceiveEvent):
     text_content = message.content
     if json.loads(text_content)['text'].lower() == 'enroll':
         enrolled.add(open_id)
-        text_content = "{\"text\": \"You've successfully enrolled. You will receive reminders for your meetings with Lark!\"}"
-        message_api_client.send_text_with_open_id(open_id, text_content)
-
-    if json.loads(text_content)['text'].lower() == 'stop':
+        text_content = {
+            "text": "You've successfully enrolled. You will receive reminders for your meetings with Lark!"
+        }
+        message_api_client.send_text_with_open_id(open_id, json.dumps(text_content))
+    elif json.loads(text_content)['text'].lower() == 'stop':
         enrolled.discard(open_id)
-        text_content = "{\"text\": \"You will not receive future message again. To use it again, type \"ENROLL\".\"}"
-        message_api_client.send_text_with_open_id(open_id, text_content)
+        text_content = {
+            "text": "You will not receive future messages again. To use it again, type \"ENROLL\"."
+        }
+        message_api_client.send_text_with_open_id(open_id, json.dumps(text_content))
     return jsonify()
 
 

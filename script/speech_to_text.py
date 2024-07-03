@@ -1,4 +1,5 @@
 import queue
+import json
 import sounddevice as sd
 from script.utils import preprocess_text, sentences_to_embeddings
 
@@ -42,7 +43,7 @@ class MicrophoneStream:
                 return
             yield chunk.tobytes()
 
-def listen_print_loop(responses, log_reg, glove_model):
+def listen_print_loop(responses, open_id, log_reg, glove_model, message_api_client):
     """Iterates through server responses and process transcriptions."""
     for response in responses:
         if not response.results:
@@ -51,7 +52,9 @@ def listen_print_loop(responses, log_reg, glove_model):
         for result in response.results:
             if result.is_final:
                 transcript = result.alternatives[0].transcript
-                print(f"Transcript: {transcript}")
+                if len(transcript) == 0:
+                    continue
+                # print(f"Transcript: {transcript}")
                 
                 preprocessed_sentence = preprocess_text(transcript)
                 sentence_embedding = sentences_to_embeddings([preprocessed_sentence], glove_model, vector_size=300)
@@ -59,5 +62,9 @@ def listen_print_loop(responses, log_reg, glove_model):
                 prediction = log_reg.predict(sentence_embedding)[0]
                 probability = float(log_reg.predict_proba(sentence_embedding)[0][1])
                 
-                print(f"Predicted Result: {prediction}") # 1 means informal
-                print(f"Informal Probability: {probability}")
+                text_content = {
+                    "text": "Informal sentence detected: " + transcript + "\n(probability: " + str("{:.2f}".format(probability)) + ")."
+                }
+                message_api_client.send_text_with_open_id(open_id, json.dumps(text_content))
+                # print(f"Predicted Result: {prediction}") # 1 means informal
+                # print(f"Informal Probability: {probability}")

@@ -19,6 +19,8 @@ load_dotenv(find_dotenv())
 
 app = Flask(__name__)
 
+processed_message_ids = set() # handles repeated pushes
+
 # load from env
 APP_ID = os.getenv("APP_ID")
 APP_SECRET = os.getenv("APP_SECRET")
@@ -106,6 +108,9 @@ def message_receive_event_handler(req_data: MessageReceiveEvent):
     if message.message_type != "text":
         logging.warn("Other types of messages have not been processed yet")
         return jsonify()
+    if message.message_id in processed_message_ids: # handles repeated pushes
+        return jsonify()
+    processed_message_ids.add(message.message_id)
     open_id = sender_id.open_id
     text_content = message.content
     if json.loads(text_content)['text'].lower() == 'enroll':

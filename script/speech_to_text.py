@@ -45,9 +45,12 @@ class MicrophoneStream:
                 return
             yield chunk.tobytes()
 
-def listen_print_loop(responses, open_id, log_reg, glove_model, message_api_client):
+def listen_print_loop(responses, open_id, log_reg, glove_model, message_api_client, stop_event):
     """Iterates through server responses and process transcriptions."""
     for response in responses:
+        if stop_event.is_set():
+            break
+
         if not response.results:
             continue
 

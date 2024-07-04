@@ -100,12 +100,12 @@ def message_receive_event_handler(req_data: MessageReceiveEvent):
         message_api_client.send_text_with_open_id(open_id, json.dumps(text_content))
     elif open_id in enrolled:
         text_content = {
-            "text": "You're already enrolled in receiving reminders. To unenroll, type \"STOP\".\n I'm currently unable to understand what you just said. "
+            "text": "You're already enrolled in receiving reminders. To unenroll, type \"STOP\".\n I'm currently not a chatbot. "
         }
         message_api_client.send_text_with_open_id(open_id, json.dumps(text_content))
     else: 
         text_content = {
-            "text": "You're currently not enrolled to receive reminders. Type \"ENROLL\" to enroll. \nI'm currently unable to understand what you just said. "
+            "text": "You're currently not enrolled to receive reminders. Type \"ENROLL\" to enroll. \nI'm currently not a chatbot. "
         }
         message_api_client.send_text_with_open_id(open_id, json.dumps(text_content))
 

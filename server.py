@@ -14,6 +14,11 @@ from script.speech_to_text import *
 from google.cloud import speech_v1p1beta1 as speech
 import joblib
 
+# db
+from db import *
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
+
 # load env parameters form file named .env
 load_dotenv(find_dotenv())
 
@@ -33,14 +38,23 @@ message_api_client = MessageApiClient(APP_ID, APP_SECRET, LARK_HOST)
 event_manager = EventManager()
 
 # enrolled users
-enrolled = set()
 active_threads = {}
 stop_events = {}
+
+# mongodb init
+MONGO_URI = os.getenv("MONGO_URI")
+db_client = MongoClient(MONGO_URI, server_api=ServerApi('1'))
+try:
+    db_client.admin.command('ping')
+    print("You successfully connected to MongoDB!")
+except Exception as e:
+    print(e)
+db = db_client.get_database("sales-helper")
 
 @event_manager.register("vc.meeting.all_meeting_started_v1")
 def meeting_started_event_handler(req_data: MeetingStartedEvent):
     open_id = req_data.event.operator.id.open_id
-    if open_id not in enrolled:
+    if not user_exist(db, open_id):
         return jsonify()
     
     if open_id not in active_threads:
@@ -113,19 +127,22 @@ def message_receive_event_handler(req_data: MessageReceiveEvent):
     processed_message_ids.add(message.message_id)
     open_id = sender_id.open_id
     text_content = message.content
+    
+    valid_user = user_exist(db, open_id)
     if json.loads(text_content)['text'].lower() == 'enroll':
-        enrolled.add(open_id)
+        if not valid_user:
+            add_user(db, open_id)
         text_content = {
             "text": "Welcome! \nYou've successfully enrolled. You will receive reminders for your meetings with Lark! \n To reverse this action, type \"STOP\"."
         }
         message_api_client.send_text_with_open_id(open_id, json.dumps(text_content))
     elif json.loads(text_content)['text'].lower() == 'stop':
-        enrolled.discard(open_id)
+        delete_user(db, open_id)
         text_content = {
             "text": "You will not receive future messages again. To use this bot again, type \"ENROLL\"."
         }
         message_api_client.send_text_with_open_id(open_id, json.dumps(text_content))
-    elif open_id in enrolled:
+    elif valid_user:
         text_content = {
             "text": "You're already enrolled in receiving reminders. To unenroll, type \"STOP\".\n I'm currently not a chatbot. "
         }

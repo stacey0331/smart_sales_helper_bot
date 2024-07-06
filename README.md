@@ -1,58 +1,101 @@
-# Quickly develop a bot
+# Smart Sales Helper Bot
 
-> ⚠️ In order to facilitate the implementation of this tutorial, a reverse proxy tool (ngrok) is used. This tool is only suitable for the development and testing phase and cannot be used in the production environment. Before using it, you need to confirm whether it complies with the company's network security policy.
+> ⚠️ To facilitate the implementation, a reverse proxy tool (ngrok) is used. This tool is only suitable for the development and testing phase and cannot be used in the production environment. Before using it, you must confirm whether it complies with the company's network security policy.
 
-This example shows how to use the Open Platform's bot function to have a bot receive user messages and make replies. You
-can extend the event processing functions of bot based on this example.
+## Features and Functionality
+
+A lark bot that detects to-be-avoided words and the formality of language during meeting calls.
+
+When to-be-avoided words or informal sentences are detected, the bot will send a reminder message promptly in private chat with the user.
+
+The user can send `ENROLL` to the bot to receive reminders or send `STOP` to stop receiving future reminders. 
+
+## Credits
+
+This project is built on top of the [**Quick Starts>Develop a Bot App**](https://open.larksuite.com/document/home/develop-a-bot-in-5-minutes/create-an-app) from the Lark official documentation. 
+
+## Dependencies
+
+#### API used
+- [Google Speech-to-text](https://cloud.google.com/speech-to-text/docs/quickstart)
+
+#### Libraries used
+- [Python sounddevice](https://python-sounddevice.readthedocs.io/en/0.4.7/index.html)
+- [Flask](https://flask.palletsprojects.com/en/3.0.x/)
+- [PyMongo]()
 
 ## Runtime environment
-
 - [Python 3](https://www.python.org/)
 - [ngrok](https://ngrok.com/download) (intranet penetration tool)
 
-## Prep work
 
-1. In [Developer Console](https://open.feishu.cn/app/), click **Create custom app**, then click the app name to go to
-   the app details page.
-2. Go to **Credentials & Basic Info** to obtain the `App ID` and `App Secret`, and then go to **Event Subscriptions** to
-   obtain the
-   `Encrypt Key` and `Verification Token`.
-3. Pull the latest code to local and enter the corresponding directory.
-    ```
-    git clone https://github.com/larksuite/lark-samples.git
-    cd lark-samples/robot_quick_start/python
-    ```
+## Run the Bot
+### Prep work
 
+1. Create the custom app
 
-4. Edit environment variables
+   In [Developer Console](https://open.feishu.cn/app/), click **Create custom app**, then click the app name to go to the app details page.
+
+2. On the left navigation bar, click to enter the **Test Companies and Users** page, click **Create Test Company**, fill in details then click **Confirm**. 
+
+3. Click **Install this app**, then on the left of the navigation bar, click the toggle icon to the right of the app name and select **Test version**.
+
+4. Go to the **Add Features** page to add **Bot**.
+
+5. Pull the latest code to local and enter the corresponding directory.
+   ```
+   git clone https://github.com/stacey0331/smart_sales_helper_bot.git
+   cd smart_sales_helper_bot
+   ```
+
+6. Edit environment variables
 
    Edit the app credential data in the `.env` file to real data.
-    ```
-    APP_ID=cli_9fxxxx00b
-    APP_SECRET=EX6xxxxOF
-    APP_VERIFICATION_TOKEN=cq3xxxxxxkUS 
-    ENCRYPT_KEY=
-    ```
-   The above parameters can be viewed in [Developer Console](https://open.feishu.cn/app/). Encrypt Key can be empty.
+   ```
+   APP_ID=
+   APP_SECRET=
+   VERIFICATION_TOKEN=
+   ENCRYPT_KEY=
+   LARK_HOST=https://open.feishu.cn
+   MONGO_URI=
+   ```
 
-## Running with Docker
+   Mongo URI can be empty for now.
 
-Ensure that [Docker](https://www.docker.com/) has been installed before running. You can choose to run your code either
+   The above parameters can be viewed in [Developer Console](https://open.feishu.cn/app/). 
+
+   Go to **Credentials & Basic Info** to obtain the `App ID` and `App Secret`, and then go to **Event Subscriptions** to
+   obtain the
+      `Encrypt Key` and `Verification Token`.
+
+### Setup Database
+   Create a database called **sales-helper** however you would like.
+   The easiest way is to use [MongoDB Atlas](https://www.mongodb.com/) to create a new free cluster. 
+
+   After creating the database, paste the connection string into the `MONGO_URI` field in file `.env`.
+
+### Run Server
+
+You can choose to run your code either
 with Docker or locally.
 
-**Mac/Linux**
+#### Option 1: Running with Docker
 
-```
-sh exec.sh
-```
+ Ensure that [Docker](https://www.docker.com/) has been installed before running.
 
-**Windows**
+   **Mac/Linux**
 
-```
-.\exec.ps1
-```
+   ```
+   sh exec.sh
+   ```
 
-## Running Locally
+   **Windows**
+
+   ```
+   .\exec.ps1
+   ```
+
+#### Option 2: Running Locally
 
 1. Create and activate a new virtual environment.
 
@@ -62,7 +105,7 @@ sh exec.sh
    . venv/bin/activate
    ```
 
-   **Windows**
+      **Windows**
    ```
    python3 -m venv venv 
    venv\Scripts\activate
@@ -85,56 +128,43 @@ sh exec.sh
    python3 server.py
    ```
 
-## Complete the configuration and experience the bot
+### Complete the Configuration and Experience the Bot
 
-The messages received by the bot are all in the format of callback event request. Using the POST request method, they
-are sent to the server for processing. Once the local server is started, the callback event can't make requests to the
-intranet. The public network request URL must be configured.
+1. Use the tool to expose the public network access portal for the local server. ngrok is used as an example here.Register and install [ngrok](https://ngrok.com/download) according to the official guidelines.
 
-Configuration involves the following two steps: Use the tool to penetrate the intranet, and go to the **Event
-Subscriptions** page to configure the public network request URL.
-
-1. Use the tool to expose the public network access portal for the local server. ngrok is used as an example here. If
-   the local has not been installed, you can access [ngrok](https://ngrok.com/download), and complete the installation
-   according to the guide.
-
-- Use the following commands to obtain the public network URL
-
-  **Note**: Before using a reverse proxy tool (ngrok), you need to determine whether it complies with the company's
-  network security policy.
-
-  **Note**: Need to get the token value in [ngrok](https://dashboard.ngrok.com/signup) in advance.
+2. On the personal dashboard page, get the Authtoken. Then run: 
    ```
    ngrok authtoken <token> // <token> needs to be replaced
    ngrok http 3000
    ```
 
 
-2. Go to **Features** > **Bot** to enable **Using Bot**.
-3. Go to the **Event Subscriptions** page to configure the **Request URL**. Use the tool to generate the domain and fill
-   in the request URL, as shown in the figure below.
-   ![image.png](https://sf3-cn.feishucdn.com/obj/open-platform-opendoc/0ce38ea653e636accbd6d268b69360f9_Osy22NvNOK.png)
-   **Note**: Configuring the request URL and sending messages to the bot will both send requests to the backend server.
-   During the request period, the server should be kept in enabled status.
+3. Go to the **Event & Callbacks** page to configure the **Request URL**. Paste in the url in the Forwarding field in ngrok (e.g. https://742b-136-49-109-67.ngrok-free.app)
+ ![image.png](https://sf3-cn.feishucdn.com/obj/open-platform-opendoc/0ce38ea653e636accbd6d268b69360f9_Osy22NvNOK.png)
+   **Note**: Configuring the request URL and sending messages to the bot will send requests to the backend server. So please make sure your server is running when you paste the URL and use the bot. 
 
 4. Select the events listened to by the bot.
 
-   On the **Event Subscriptions** page, click **Add event** and select and subscribe to the `Message received` event.
-5. Add scopes to the bot
+   On the **Event Subscriptions** page, click **Add event** and select and subscribe to the following events:
+      
+      `Message received (im.message.receive_v1)`
 
-   On the **Permissions & Scopes** page, search for the scopes you need, and add them to the bot.
+      `Corporate meeting started (vc.meeting.all_meeting_started_v1)`
 
-- Dependent scope list
-    - Read and send messages in private and group chats
-    - Read private messages sent to the bot
+      `Corporate meeting ended (vc.meeting.all_meeting_ended_v1)`
 
-  **Note**: The `Read private messages sent to the bot` scope is not displayed in **Added events**. You must switch to
-  the **Permissions & Scopes** page to add it to your bot.
+   Add the scope required for all these events before continuing. 
 
-6. On the **Version Management & Release** page, click **Create a version** > **Submit for release**.
+5. Add More Scopes
+
+   On the **Permissions & Scopes** page, search for the scopes below and add them to the bot: 
+      - Read and send messages in private and group chats
+
+6. Open **Lark** or **Feishu** and search for the **Bot name** to begin experiencing the bot's auto replies.
+
+## Release
+On the **Version Management & Release** page, click **Create a version** > **Submit for release**.
 
    **Note**: The release involves scopes that need to be manually approved. You can use Test companies and users
-   function to generate a test version and complete the test. Note: After release, you can check whether users are
-   within the bot's availability range based on whether they can find the bot.
-
-8. Open **Feishu** and search for the **Bot name** to begin experiencing the bot's auto replies.
+ function to generate a test version and complete the test. Note: After release, you can check whether users are
+ within the bot's availability range based on whether they can find the bot.

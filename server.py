@@ -40,6 +40,7 @@ event_manager = EventManager()
 # enrolled users
 active_threads = {}
 stop_events = {}
+lock = threading.Lock()
 
 # mongodb init
 MONGO_URI = os.getenv("MONGO_URI")
@@ -57,12 +58,13 @@ def meeting_started_event_handler(req_data: MeetingStartedEvent):
     if not user_exist(db, open_id):
         return jsonify()
     
-    if open_id not in active_threads:
-        stop_event = threading.Event()
-        stop_events[open_id] = stop_event
-        thread = threading.Thread(target=start_transcription, args=(open_id,stop_event))
-        active_threads[open_id] = thread
-        thread.start()
+    with lock: 
+        if open_id not in active_threads:
+            stop_event = threading.Event()
+            stop_events[open_id] = stop_event
+            thread = threading.Thread(target=start_transcription, args=(open_id,stop_event))
+            active_threads[open_id] = thread
+            thread.start()
 
     return jsonify()
 
@@ -95,17 +97,14 @@ def start_transcription(open_id, stop_event):
 @event_manager.register("vc.meeting.all_meeting_ended_v1")
 def meeting_ended_event_handler(req_data: MeetingEndedEvent):
     open_id = req_data.event.operator.id.open_id
-    if open_id in active_threads:
-        stop_events[open_id].set()
-        active_threads[open_id].join()
-        del active_threads[open_id]
-        del stop_events[open_id]
+    with lock: 
+        if open_id in active_threads:
+            stop_events[open_id].set()
+            active_threads[open_id].join()
+            del active_threads[open_id]
+            del stop_events[open_id]
     return jsonify()
 
-# @event_manager.register("vc.meeting.join_meeting_v1")
-# def join_meeting_event_handler(req_data: JoinMeetingEvent):
-#     print('join meeting \n\n')
-#     return jsonify()
 
 @event_manager.register("url_verification")
 def request_url_verify_handler(req_data: UrlVerificationEvent):

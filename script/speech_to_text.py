@@ -2,11 +2,13 @@ import queue
 import json
 import sounddevice as sd
 from script.utils import preprocess_text, sentences_to_embeddings
+import csv
 
 RATE = 16000
 CHUNK = int(RATE / 10)  # 100ms
 
-avoid_phrase = {"guarantee", "trust me", "just checking in", "to be honest", "what if i said", "mhm", "hm"}
+avoid_phrase = set()
+avoid_phrase_csv = 'avoid_phrases.csv'
 
 """Opens a recording stream as a generator yielding the audio chunks."""
 class MicrophoneStream:
@@ -47,6 +49,13 @@ class MicrophoneStream:
 
 def listen_print_loop(responses, open_id, log_reg, glove_model, message_api_client, stop_event):
     """Iterates through server responses and process transcriptions."""
+    
+    with open(avoid_phrase_csv, newline='') as csvfile:
+        reader = csv.reader(csvfile)
+        
+        for row in reader:
+            avoid_phrase.update(set(row))
+    
     for response in responses:
         if stop_event.is_set():
             break

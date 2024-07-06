@@ -79,9 +79,9 @@ def listen_print_loop(responses, open_id, log_reg, glove_model, message_api_clie
                 preprocessed_sentence = preprocess_text(transcript)
                 sentence_embedding = sentences_to_embeddings([preprocessed_sentence], glove_model, vector_size=300)
                 
-                prediction = log_reg.predict(sentence_embedding)[0]
-                if prediction == 1: 
-                    probability = float(log_reg.predict_proba(sentence_embedding)[0][1])
+                # prediction = log_reg.predict(sentence_embedding)[0]
+                probability = float(log_reg.predict_proba(sentence_embedding)[0][1])
+                if probability >= 0.85: 
                     text_content = {
                         "text": "Informal sentence detected: " + transcript + "\n(probability: " + str("{:.2f}".format(probability)) + ")."
                     }

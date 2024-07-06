@@ -1,0 +1,23 @@
+sentence,avg_score
+"Good morning, how may I assist you today?",3
+"Good afternoon, how may I assist you today?",3
+"Good evening, how may I assist you today?",3
+"Hello! This is Elsa from TestCompany.",2.8
+"Hi, This is Elsa from TestCompany.",2.8
+"I hope you're having a good day so far.",2.8
+"How are you today?",2.8
+"Hey there! What can I help you with?",-3
+"Our product offers a comprehensive solution to your needs.",2.5
+"So, what's your budget looking like?",-2.8
+"Is this within your budget?",-2.8
+"Could you please provide more details about your requirements?",3
+"I need to know your budget before we proceed further.",-3
+"Is there anything else I can help you with?",3
+"Can you tell me a little about your company?",-3
+"You caught me off guard",-3
+"I'm just checking in",-3
+"Just touching base",-3
+"Can I have a few minutes of your time?",-2.8
+"You're welcome. Have a great day!",3
+"Thank you for considering",3
+"Certainly. I'll send over some available times for you to choose from.",2.8

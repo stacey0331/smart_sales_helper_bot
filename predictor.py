@@ -4,7 +4,7 @@ from script.utils import preprocess_text, sentences_to_embeddings
 
 app = Flask(__name__)
 
-log_reg = joblib.load('./model/logistic_reg_model.pkl')
+log_reg = joblib.load('./model/svm_model.pkl')
 glove_model = joblib.load('./model/glove_model.pkl')
 
 @app.route('/predict', methods=['POST'])
@@ -26,4 +26,4 @@ def predict():
     return jsonify(response)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(port=8000, debug=True)

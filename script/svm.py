@@ -1,12 +1,13 @@
+import os
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.svm import SVC  # Import Support Vector Classifier
+from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
-import matplotlib.pyplot as plt
-import seaborn as sns
 import joblib
 from utils import preprocess_text, sentences_to_embeddings
+# import matplotlib.pyplot as plt
+# import seaborn as sns
 
 def load_glove_model(glove_file):
     model = {}
@@ -59,6 +60,9 @@ svm_clf.fit(X_train, Y_train)
 y_pred_proba = svm_clf.predict_proba(X_test)[:, 1]
 y_pred = svm_clf.predict(X_test)
 
+model_dir = './model'
+if not os.path.exists(model_dir):
+    os.makedirs(model_dir)
 joblib.dump(svm_clf, './model/svm_model.pkl')
 joblib.dump(glove_model, './model/glove_model.pkl')
 
@@ -67,12 +71,12 @@ accuracy = accuracy_score(Y_test, y_pred)
 print(f"Accuracy: {accuracy}")
 print(classification_report(Y_test, y_pred))
 
-# Plot confusion matrix
-cm = confusion_matrix(Y_test, y_pred)
-plt.figure(figsize=(8, 6))
-sns.heatmap(cm, annot=True, cmap='Blues', fmt='d', cbar=False)
-plt.xlabel('Predicted')
-plt.ylabel('True')
-plt.title('Confusion Matrix')
-plt.show()
+# # Plot confusion matrix
+# cm = confusion_matrix(Y_test, y_pred)
+# plt.figure(figsize=(8, 6))
+# sns.heatmap(cm, annot=True, cmap='Blues', fmt='d', cbar=False)
+# plt.xlabel('Predicted')
+# plt.ylabel('True')
+# plt.title('Confusion Matrix')
+# plt.show()
 

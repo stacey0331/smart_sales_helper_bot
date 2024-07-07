@@ -19,7 +19,6 @@ def predict():
 
     response = {
         'sentence': sentence,
-        'prediction': int(prediction),
         'informal_prob': probability
     }
 

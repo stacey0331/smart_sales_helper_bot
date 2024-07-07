@@ -6,13 +6,16 @@
 
 A lark bot that detects to-be-avoided words and the formality of language during meeting calls.
 
-When to-be-avoided words or informal sentences are detected, the bot will send a reminder message promptly in private chat with the user.
+When to-be-avoided words or informal sentences are detected, the bot will send a reminder message promptly in private chat with the user. Informal languages are detected using our trained machine learning model, and the to-be-avoided words can be found and added in the file avoid_phrases.csv.
 
 The user can send `ENROLL` to the bot to receive reminders or send `STOP` to stop receiving future reminders. 
 
 ## Credits
 
 This project is built on top of the [**Quick Starts>Develop a Bot App**](https://open.larksuite.com/document/home/develop-a-bot-in-5-minutes/create-an-app) from the Lark official documentation. 
+
+The dataset used to train the model is the 
+[pavlick-formality-scores](https://huggingface.co/datasets/osyvokon/pavlick-formality-scores) from Hugging Face. 
 
 ## Dependencies
 
@@ -22,7 +25,12 @@ This project is built on top of the [**Quick Starts>Develop a Bot App**](https:/
 #### Libraries used
 - [Python sounddevice](https://python-sounddevice.readthedocs.io/en/0.4.7/index.html)
 - [Flask](https://flask.palletsprojects.com/en/3.0.x/)
-- [PyMongo]()
+- [PyMongo](https://pymongo.readthedocs.io/en/stable/)
+- [Pandas](https://pandas.pydata.org/)
+- [scikit-learn](https://scikit-learn.org/stable/)
+
+#### Word Embedding Model
+- [GloVe (Global Vectors for Word Representation)](https://nlp.stanford.edu/projects/glove/)
 
 ## Runtime environment
 - [Python 3](https://www.python.org/)
@@ -73,6 +81,19 @@ This project is built on top of the [**Quick Starts>Develop a Bot App**](https:/
    The easiest way is to use [MongoDB Atlas](https://www.mongodb.com/) to create a new free cluster. 
 
    After creating the database, paste the connection string into the `MONGO_URI` field in file `.env`.
+
+### Download Pre-trained Word Vectors
+
+Download the word vectors you want to use at [GloVe](https://nlp.stanford.edu/projects/glove/). After unzip, put the file (e.g. glove.6B.300d.txt) in the `script` folder. 
+
+Make sure to change the `glove_file` variable in `svm.py` to match the word vectors file name. 
+
+### Generate Model
+
+Run the following to generate the SVM model (currently svm works the best in this case compared to linear and logistic)
+```
+python3 script/svm.py
+```
 
 ### Run Server
 
@@ -161,6 +182,12 @@ with Docker or locally.
       - Read and send messages in private and group chats
 
 6. Open **Lark** or **Feishu** and search for the **Bot name** to begin experiencing the bot's auto replies.
+
+## Future Improvements
+- Add a bot menu for enrolling and unenrolling for better front-end experience. 
+- Currently the bot only monitors users that starts the meeting. Although the sales person are usually the ones starts the call, ideally the bot should be able to handle other cases too. 
+- The dataset we use to train our model are from the news, blogs, etc. The accuracy of the model might increase if it's trained on conversational/speech datasets.  
+
 
 ## Release
 On the **Version Management & Release** page, click **Create a version** > **Submit for release**.

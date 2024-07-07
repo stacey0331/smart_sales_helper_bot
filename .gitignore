@@ -157,3 +157,6 @@ cython_debug/
 
 glove.6B.300d.txt
 *.pkl
+
+script/pavlick_train.csv
+script/pavlick_test.csv
